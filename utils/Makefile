@@ -2,8 +2,8 @@ CXXFLAGS=-Wall -O3 -g -Wextra -Wno-unused-parameter
 OBJECTS=led-image-viewer.o
 BINARIES=led-image-viewer
 
-OPTIONAL_OBJECTS=video-viewer.o
-OPTIONAL_BINARIES=video-viewer
+OPTIONAL_OBJECTS=video-viewer.o pixel-mapping.cc
+OPTIONAL_BINARIES=video-viewer pixel-mapping
 
 # Where our library resides. You mostly only need to change the
 # RGB_LIB_DISTRIBUTION, this is where the library is checked out.
@@ -29,6 +29,9 @@ led-image-viewer: led-image-viewer.o $(RGB_LIBRARY)
 
 video-viewer: video-viewer.o $(RGB_LIBRARY)
 	$(CXX) $(CXXFLAGS) video-viewer.o -o $@ $(LDFLAGS) `pkg-config --cflags --libs  libavcodec libavformat libswscale libavutil`
+
+pixel-mapping: pixel-mapping.o $(RGB_LIBRARY)
+	$(CXX) $(CXXFLAGS) pixel-mapping.o -o $@ $(LDFLAGS)
 
 %.o : %.cc
 	$(CXX) -I$(RGB_INCDIR) $(CXXFLAGS) -c -o $@ $<
