@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "paper-jsdom-canvas": "^0.12.4"
+  }
+}
