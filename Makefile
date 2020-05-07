@@ -8,6 +8,7 @@ RGB_LIBRARY=$(RGB_LIBDIR)/lib$(RGB_LIBRARY_NAME).a
 # Some language bindings.
 PYTHON_LIB_DIR=bindings/python
 CSHARP_LIB_DIR=bindings/c\#
+NODEJS_LIB_DIR=bindings/node
 
 all : $(RGB_LIBRARY)
 
@@ -26,6 +27,9 @@ build-csharp:
 
 build-python: $(RGB_LIBRARY)
 	$(MAKE) -C $(PYTHON_LIB_DIR) build
+
+build-nodejs: $(RGB_LIBRARY)
+	$(MAKE) -C $(NODEJS_LIB_DIR) build
 
 install-python: build-python
 	$(MAKE) -C $(PYTHON_LIB_DIR) install
