@@ -1,0 +1,22 @@
+{
+  "name": "rgb-led-matrix",
+  "version": "0.0.1",
+  "description": "Node.js binding for the rpi-rgb-led-matrix library https://github.com/hzeller/rpi-rgb-led-matrix",
+  "author": {
+    "name": "Jürg Lehni",
+    "email": "juerg@scratchdisk.com",
+    "url": "https://github.com/lehni"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lehni/rpi-rgb-led-matrix/tree/node-bindings"
+  },
+  "scripts": {
+    "install": "make"
+  },
+  "main": "index.js",
+  "license": "MIT",
+  "engines": {
+    "node": ">=10.0.0"
+  }
+}
