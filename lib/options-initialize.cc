@@ -387,7 +387,7 @@ void PrintMatrixFlags(FILE *out, const RGBMatrix::Options &d,
           "\t--led-pixel-mapper        : Semicolon-separated list of pixel-mappers to arrange pixels.\n"
           "\t                            Optional params after a colon e.g. \"U-mapper;Rotate:90\"\n"
           "\t                            Available: %s. Default: \"\"\n"
-          "\t--led-pwm-bits=<1..11>    : PWM bits (Default: %d).\n"
+          "\t--led-pwm-bits=<1..15>    : PWM bits (Default: %d).\n"
           "\t--led-brightness=<percent>: Brightness in percent (Default: %d).\n"
           "\t--led-scan-mode=<0..1>    : 0 = progressive; 1 = interlaced "
           "(Default: %d).\n"
@@ -481,8 +481,8 @@ bool RGBMatrix::Options::Validate(std::string *err_in) const {
     success = false;
   }
 
-  if (pwm_bits <= 0 || pwm_bits > 11) {
-    err->append("Invalid range of pwm-bits (1..11 allowed).\n");
+  if (pwm_bits <= 0 || pwm_bits > 15) {
+    err->append("Invalid range of pwm-bits (1..15 allowed).\n");
     success = false;
   }
 
