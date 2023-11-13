@@ -638,7 +638,7 @@ class ColorLookupTable {
   public:
     static const ColorLookup &GetLookup(uint8_t brightness) {
       static ColorLookupTable instance;
-      return instance.lookups_[brightness - 1];
+      return instance.lookups_[brightness];
     }
 
 
@@ -652,11 +652,11 @@ class ColorLookupTable {
 
     ColorLookupTable() {
       for (int c = 0; c < 256; ++c)
-        for (int b = 0; b < 100; ++b)
-          lookups_[b].color[c] = luminance_cie1931(c, b + 1);
+        for (int b = 0; b <= 100; ++b)
+          lookups_[b].color[c] = luminance_cie1931(c, b);
     }
 
-    ColorLookup lookups_[100]{};
+    ColorLookup lookups_[101]{};
   };
 
   static inline uint16_t CIEMapColor(uint8_t brightness, uint8_t c) {
