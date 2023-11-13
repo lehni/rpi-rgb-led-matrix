@@ -602,15 +602,15 @@ struct ColorLookup {
 static ColorLookup *CreateLuminanceCIE1931LookupTable() {
   ColorLookup *for_brightness = new ColorLookup[100];
   for (int c = 0; c < 256; ++c)
-    for (int b = 0; b < 100; ++b)
-      for_brightness[b].color[c] = luminance_cie1931(c, b + 1);
+    for (int b = 0; b <= 100; ++b)
+      for_brightness[b].color[c] = luminance_cie1931(c, b);
 
   return for_brightness;
 }
 
 static inline uint16_t CIEMapColor(uint8_t brightness, uint8_t c) {
   static ColorLookup *luminance_lookup = CreateLuminanceCIE1931LookupTable();
-  return luminance_lookup[brightness - 1].color[c];
+  return luminance_lookup[brightness].color[c];
 }
 
 // Non luminance correction. TODO: consider getting rid of this.

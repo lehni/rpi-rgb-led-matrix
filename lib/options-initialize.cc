@@ -425,8 +425,8 @@ bool RGBMatrix::Options::Validate(std::string *err_in) const {
     success = false;
   }
 
-  if (brightness < 1 || brightness > 100) {
-    err->append("Brightness outside usable range (Percent 1..100 allowed).\n");
+  if (brightness < 0 || brightness > 100) {
+    err->append("Brightness outside usable range (Percent 0..100 allowed).\n");
     success = false;
   }
 
