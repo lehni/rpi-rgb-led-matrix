@@ -367,6 +367,7 @@ public:
   virtual bool SetParameters(int chain, int parallel, const char *param) {
     chain_ = chain;
     parallel_ = parallel;
+    map_.clear();
     const char* pos = param;
     if (!pos || !*pos) {
       fprintf(stderr, "Remap mapper can't be used without parameters\n");
