@@ -433,8 +433,11 @@ Framebuffer::~Framebuffer() {
                                         int pwm_lsb_nanoseconds,
                                         int dither_bits,
                                         int row_address_type) {
-  if (sOutputEnablePulser != NULL)
-    return;  // already initialized.
+  // Allow re-initialization for dither_bits changes at runtime.
+  // GPIO outputs persist across calls — only pulser and row setter need reset.
+  bool reinit = (sOutputEnablePulser != NULL);
+  delete sOutputEnablePulser;
+  delete row_setter_;
 
   const struct HardwareMapping &h = *hardware_mapping_;
   // Tell GPIO about all bits we intend to use.
@@ -487,13 +490,15 @@ Framebuffer::~Framebuffer() {
 
   all_used_bits |= row_setter_->need_bits();
 
-  // Adafruit HAT identified by the same prefix.
-  const bool is_some_adafruit_hat = (0 == strncmp(h.name, "adafruit-hat",
-                                                  strlen("adafruit-hat")));
-  // Initialize outputs, make sure that all of these are supported bits.
-  const gpio_bits_t result = io->InitOutputs(all_used_bits,
-                                             is_some_adafruit_hat);
-  assert(result == all_used_bits);  // Impl: all bits declared in gpio.cc ?
+  if (!reinit) {
+    // Adafruit HAT identified by the same prefix.
+    const bool is_some_adafruit_hat = (0 == strncmp(h.name, "adafruit-hat",
+                                                    strlen("adafruit-hat")));
+    // Initialize outputs, make sure that all of these are supported bits.
+    const gpio_bits_t result = io->InitOutputs(all_used_bits,
+                                               is_some_adafruit_hat);
+    assert(result == all_used_bits);  // Impl: all bits declared in gpio.cc ?
+  }
 
   std::vector<int> bitplane_timings;
   uint32_t timing_ns = pwm_lsb_nanoseconds;
