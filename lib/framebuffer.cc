@@ -330,7 +330,8 @@ Framebuffer::Framebuffer(int rows, int columns, int parallel,
     columns_(columns),
     scan_mode_(scan_mode),
     inverse_color_(inverse_color),
-    pwm_bits_(kBitPlanes), do_luminance_correct_(true), brightness_(100),
+    pwm_bits_(kBitPlanes), do_luminance_correct_(true), interleaved_(false),
+    brightness_(100),
     double_rows_(rows / SUB_PANELS_),
     buffer_size_(double_rows_ * columns_ * kBitPlanes * sizeof(gpio_bits_t)),
     shared_mapper_(mapper) {
@@ -937,44 +938,58 @@ void Framebuffer::DumpToMatrix(GPIO *io, int pwm_low_bit) {
   const int start_bit = std::max(pwm_low_bit, kBitPlanes - pwm_bits_);
 
   const uint8_t half_double = double_rows_/2;
-  for (uint8_t row_loop = 0; row_loop < double_rows_; ++row_loop) {
-    uint8_t d_row;
+
+  auto resolve_row = [&](uint8_t row_loop) -> uint8_t {
     switch (scan_mode_) {
+    case 1:  // interlaced
+      return ((row_loop < half_double)
+              ? (row_loop << 1)
+              : ((row_loop - half_double) << 1) + 1);
     case 0:  // progressive
     default:
-      d_row = row_loop;
-      break;
-
-    case 1:  // interlaced
-      d_row = ((row_loop < half_double)
-               ? (row_loop << 1)
-               : ((row_loop - half_double) << 1) + 1);
+      return row_loop;
     }
+  };
 
-    // Rows can't be switched very quickly without ghosting, so we do the
-    // full PWM of one row before switching rows.
+  auto emit_plane = [&](uint8_t d_row, int b) {
+    gpio_bits_t *row_data = ValueAt(d_row, 0, b);
+    // While the output enable is still on, we can already clock in the next
+    // data.
+    for (int col = 0; col < columns_; ++col) {
+      const gpio_bits_t &out = *row_data++;
+      io->WriteMaskedBits(out, color_clk_mask);  // col + reset clock
+      io->SetBits(h.clock);               // Rising edge: clock color in.
+    }
+    io->ClearBits(color_clk_mask);    // clock back to normal.
+
+    // OE of the previous row-data must be finished before strobe.
+    sOutputEnablePulser->WaitPulseFinished();
+
+    // Setting address and strobing needs to happen in dark time.
+    row_setter_->SetRowAddress(io, d_row);
+
+    io->SetBits(h.strobe);   // Strobe in the previously clocked in row.
+    io->ClearBits(h.strobe);
+
+    // Now switch on for the sleep time necessary for that bit-plane.
+    sOutputEnablePulser->SendPulse(b);
+  };
+
+  if (interleaved_) {
+    // Interleaved: each bit plane across all rows before the next plane.
+    // Reduces flicker but may cause banding during fast motion.
     for (int b = start_bit; b < kBitPlanes; ++b) {
-      gpio_bits_t *row_data = ValueAt(d_row, 0, b);
-      // While the output enable is still on, we can already clock in the next
-      // data.
-      for (int col = 0; col < columns_; ++col) {
-        const gpio_bits_t &out = *row_data++;
-        io->WriteMaskedBits(out, color_clk_mask);  // col + reset clock
-        io->SetBits(h.clock);               // Rising edge: clock color in.
+      for (uint8_t row_loop = 0; row_loop < double_rows_; ++row_loop) {
+        emit_plane(resolve_row(row_loop), b);
       }
-      io->ClearBits(color_clk_mask);    // clock back to normal.
-
-      // OE of the previous row-data must be finished before strobe.
-      sOutputEnablePulser->WaitPulseFinished();
-
-      // Setting address and strobing needs to happen in dark time.
-      row_setter_->SetRowAddress(io, d_row);
-
-      io->SetBits(h.strobe);   // Strobe in the previously clocked in row.
-      io->ClearBits(h.strobe);
-
-      // Now switch on for the sleep time necessary for that bit-plane.
-      sOutputEnablePulser->SendPulse(b);
+    }
+  } else {
+    // Grouped: all bit planes per row before switching rows.
+    for (uint8_t row_loop = 0; row_loop < double_rows_; ++row_loop) {
+      uint8_t d_row = resolve_row(row_loop);
+      for (int b = start_bit; b < kBitPlanes; ++b) {
+        emit_plane(d_row, b);
+      }
     }
   }
 }

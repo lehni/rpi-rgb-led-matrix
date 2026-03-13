@@ -270,6 +270,8 @@ public:
   void SetBrightness(uint8_t brightness);
   uint8_t brightness();
 
+  void SetInterleaved(bool on);
+
   //-- GPIO interaction.
   // This library uses the GPIO pins to drive the matrix; this is a safe way
   // to request the 'remaining' bits to be used for user purposes.
@@ -352,6 +354,8 @@ public:
 
   void SetBrightness(uint8_t brightness);
   uint8_t brightness();
+
+  void SetInterleaved(bool on);
 
   //-- Serialize()/Deserialize() are fast ways to store and re-create a canvas.
 

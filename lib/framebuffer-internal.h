@@ -117,6 +117,9 @@ public:
   }
   uint8_t brightness() { return brightness_; }
 
+  void SetInterleaved(bool on) { interleaved_ = on; }
+  bool interleaved() const { return interleaved_; }
+
   void DumpToMatrix(GPIO *io, int pwm_bits_to_show);
 
   void Serialize(const char **data, size_t *len) const;
@@ -158,6 +161,7 @@ private:
 
   uint8_t pwm_bits_;   // PWM bits to display.
   bool do_luminance_correct_;
+  bool interleaved_;   // Interleave BCM planes across rows.
   uint8_t brightness_;
 
   const int double_rows_;
