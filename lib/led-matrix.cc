@@ -87,6 +87,8 @@ public:
   void SetBrightness(uint8_t brightness);
   uint8_t brightness();
 
+  void SetInterleaved(bool on);
+
   uint64_t RequestInputs(uint64_t);
   uint64_t AwaitInputChange(int timeout_ms);
 
@@ -574,6 +576,12 @@ uint8_t RGBMatrix::Impl::brightness() {
   return params_.brightness;
 }
 
+void RGBMatrix::Impl::SetInterleaved(bool on) {
+  for (size_t i = 0; i < created_frames_.size(); ++i) {
+    created_frames_[i]->framebuffer()->SetInterleaved(on);
+  }
+}
+
 bool RGBMatrix::Impl::ApplyPixelMapper(const PixelMapper *mapper) {
   if (mapper == NULL) return true;
   using internal::PixelDesignatorMap;
@@ -765,6 +773,8 @@ void RGBMatrix::SetBrightness(uint8_t brightness) {
 }
 uint8_t RGBMatrix::brightness() { return impl_->brightness(); }
 
+void RGBMatrix::SetInterleaved(bool on) { impl_->SetInterleaved(on); }
+
 uint64_t RGBMatrix::RequestInputs(uint64_t all_interested_bits) {
   return impl_->RequestInputs(all_interested_bits);
 }
@@ -830,6 +840,8 @@ bool FrameCanvas::luminance_correct() const { return frame_->luminance_correct()
 
 void FrameCanvas::SetBrightness(uint8_t brightness) { frame_->SetBrightness(brightness); }
 uint8_t FrameCanvas::brightness() { return frame_->brightness(); }
+
+void FrameCanvas::SetInterleaved(bool on) { frame_->SetInterleaved(on); }
 
 void FrameCanvas::Serialize(const char **data, size_t *len) const {
   frame_->Serialize(data, len);
